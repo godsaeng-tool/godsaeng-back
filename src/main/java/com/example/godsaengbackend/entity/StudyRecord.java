@@ -23,23 +23,20 @@ public class StudyRecord {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plan_id", nullable = false)
-    private StudyPlan studyPlan;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false)
-    private LocalDateTime startTime;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lecture_id", nullable = false)
+    private Lecture lecture;
 
-    @Column
-    private LocalDateTime endTime;
+    @Column(name = "study_date")
+    private LocalDateTime studyDate;
 
-    @Column
-    private Integer durationMinutes;
+    @Column(name = "study_duration")
+    private Integer studyDuration;
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String notes;
 
     @CreationTimestamp

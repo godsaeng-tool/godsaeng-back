@@ -104,4 +104,32 @@ public class AIService {
             throw new RuntimeException("파일 업로드 실패", e);
         }
     }
+
+    public String getStudyRecommendation(String email, Long lectureId) {
+        try {
+            // AI 서비스에 요청 보내기
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("email", email);
+            requestBody.put("lecture_id", lectureId);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            
+            // AI 서비스에 요청 전송
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    aiServiceUrl + "/recommendation", request, Map.class);
+            
+            // 응답에서 추천 내용 추출
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                return (String) response.getBody().get("recommendation");
+            } else {
+                throw new RuntimeException("학습 추천 실패: 서버 응답이 유효하지 않습니다.");
+            }
+        } catch (Exception e) {
+            logger.error("학습 추천 요청 중 오류 발생: {}", e.getMessage());
+            throw new RuntimeException("학습 추천 실패", e);
+        }
+    }
 }

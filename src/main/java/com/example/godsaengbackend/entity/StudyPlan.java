@@ -26,17 +26,16 @@ public class StudyPlan {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false)
-    private String title;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lecture_id", nullable = false)
+    private Lecture lecture;
 
+    @Column(name = "plan_details", columnDefinition = "TEXT", nullable = false)
+    private String planDetails;
+
+    @Enumerated(EnumType.STRING)
     @Column
-    private String description;
-
-    @Column(nullable = false)
-    private LocalDateTime startDate;
-
-    @Column(nullable = false)
-    private LocalDateTime endDate;
+    private Status status = Status.PENDING;
 
     @CreationTimestamp
     @Column(name = "created_at")
@@ -45,4 +44,8 @@ public class StudyPlan {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public enum Status {
+        PENDING, IN_PROGRESS, COMPLETED
+    }
 }
