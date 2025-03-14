@@ -70,4 +70,12 @@ public class UserService implements UserDetailsService {
         User user = findByEmail(email);
         return UserDto.UserResponse.fromEntity(user);
     }
+    
+    @Transactional
+    public UserDto.UserResponse updateGodMode(String email, Boolean isGodMode) {
+        User user = findByEmail(email);
+        user.setIsGodMode(isGodMode);
+        User updatedUser = userRepository.save(user);
+        return UserDto.UserResponse.fromEntity(updatedUser);
+    }
 }

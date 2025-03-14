@@ -11,7 +11,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "study_plans")
+@Table(name = "study_plans", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"user_id", "lecture_id"})
+})
 @Data
 @Builder
 @NoArgsConstructor

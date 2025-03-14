@@ -81,4 +81,12 @@ public class UserController {
     public ResponseEntity<UserDto.UserResponse> getCurrentUser(@RequestAttribute("email") String email) {
         return ResponseEntity.ok(userService.getUserProfile(email));
     }
+    
+    // 갓생 모드 업데이트 엔드포인트 추가
+    @PutMapping("/god-mode")
+    public ResponseEntity<UserDto.UserResponse> updateGodMode(
+            @RequestAttribute("email") String email,
+            @RequestBody UserDto.GodModeRequest request) {
+        return ResponseEntity.ok(userService.updateGodMode(email, request.getIsGodMode()));
+    }
 }

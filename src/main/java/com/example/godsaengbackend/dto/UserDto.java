@@ -82,4 +82,12 @@ public class UserDto {
                     .build();
         }
     }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GodModeRequest {
+        private Boolean isGodMode;
+    }
 }
