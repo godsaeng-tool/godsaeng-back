@@ -45,6 +45,10 @@ public class AIService {
             requestBody.put("lecture_id", lectureId);
             requestBody.put("source_type", sourceType.toString());
             
+            // 콜백 URL 추가 - AI 서버가 처리 완료 후 이 URL로 결과를 보냄
+            String callbackUrl = "http://localhost:8080/api/ai/callback/complete";
+            requestBody.put("callback_url", callbackUrl);
+            
             if (sourceType == Lecture.SourceType.YOUTUBE) {
                 requestBody.put("youtube_url", videoUrl);
             } else {
@@ -204,6 +208,23 @@ public class AIService {
         } catch (Exception e) {
             logger.error("AI 채팅 요청 중 오류 발생: {}", e.getMessage());
             return "죄송합니다. 서버 오류가 발생했습니다. 나중에 다시 시도해주세요.";
+        }
+    }
+
+    // 결과 직접 조회 메서드 추가 (콜백이 실패할 경우 대비)
+    public Map<String, Object> getLectureResult(String taskId) {
+        try {
+            ResponseEntity<Map> response = restTemplate.getForEntity(
+                    aiServiceUrl + "/result/" + taskId, Map.class);
+            
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                return response.getBody();
+            } else {
+                throw new RuntimeException("결과 조회 실패: 서버 응답이 유효하지 않습니다.");
+            }
+        } catch (Exception e) {
+            logger.error("결과 조회 중 오류 발생: {}", e.getMessage());
+            throw new RuntimeException("결과 조회 실패", e);
         }
     }
 }

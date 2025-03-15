@@ -1,10 +1,13 @@
 package com.example.godsaengbackend.controller;
 
 import com.example.godsaengbackend.entity.Lecture;
+import com.example.godsaengbackend.service.AIService;
 import com.example.godsaengbackend.service.LectureService;
 import com.example.godsaengbackend.service.StudyService;
+import com.example.godsaengbackend.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,10 +21,12 @@ public class AICallbackController {
     
     private final LectureService lectureService;
     private final StudyService studyService;
+    private final AIService aiService;
 
-    public AICallbackController(LectureService lectureService, StudyService studyService) {
+    public AICallbackController(LectureService lectureService, StudyService studyService, AIService aiService) {
         this.lectureService = lectureService;
         this.studyService = studyService;
+        this.aiService = aiService;
     }
 
     @PostMapping("/status")
@@ -38,15 +43,25 @@ public class AICallbackController {
 
     @PostMapping("/complete")
     public ResponseEntity<?> completeProcessing(@RequestBody Map<String, Object> request) {
-        Long lectureId = Long.valueOf(request.get("lecture_id").toString());
-        String transcript = (String) request.get("transcript");
-        String summary = (String) request.get("summary");
-        String expectedQuestions = (String) request.get("expected_questions");
-        
-        logger.info("강의 ID {}의 처리가 완료되었습니다.", lectureId);
-        lectureService.updateLectureResult(lectureId, transcript, summary, expectedQuestions);
-        
-        return ResponseEntity.ok().build();
+        try {
+            // 요청 데이터 로깅
+            logger.info("콜백 요청 데이터: {}", request);
+            
+            Long lectureId = Long.valueOf(request.get("lecture_id").toString());
+            
+            // AI 서버의 결과 JSON 형식에 맞게 데이터 추출
+            String transcript = (String) request.get("transcribed_text");
+            String summary = (String) request.get("summary_text");
+            String expectedQuestions = (String) request.get("quiz_text");
+            
+            logger.info("강의 ID {}의 처리가 완료되었습니다.", lectureId);
+            lectureService.updateLectureResult(lectureId, transcript, summary, expectedQuestions);
+            
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            logger.error("콜백 처리 중 오류 발생: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+        }
     }
     
     @PostMapping("/embedding")
@@ -71,5 +86,17 @@ public class AICallbackController {
         studyService.saveAIGeneratedStudyPlan(userEmail, lectureId, planDetails);
         
         return ResponseEntity.ok().build();
+    }
+
+    // 결과 파일 직접 조회 엔드포인트 추가 (콜백이 실패할 경우 대비)
+    @GetMapping("/result/{taskId}")
+    public ResponseEntity<?> getTaskResult(@PathVariable String taskId) {
+        try {
+            Map<String, Object> result = aiService.getLectureResult(taskId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            logger.error("결과 조회 중 오류 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+        }
     }
 } 
