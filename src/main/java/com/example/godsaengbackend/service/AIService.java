@@ -100,7 +100,7 @@ public class AIService {
             
             // Flask 서버로 요청 전송
             ResponseEntity<Map> response = restTemplate.postForEntity(
-                    aiServiceUrl + "/upload", requestEntity, Map.class);
+                    aiServiceUrl + "/process", requestEntity, Map.class);
             
             // 응답에서 파일 URL 또는 식별자 추출
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
