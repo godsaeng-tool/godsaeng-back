@@ -1,8 +1,7 @@
 package com.example.godsaengbackend.service;
 
-import com.example.godsaengbackend.entity.ChatMessage;
-import com.example.godsaengbackend.entity.ChatSession;
 import com.example.godsaengbackend.entity.Lecture;
+import com.example.godsaengbackend.repository.LectureRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,12 +28,14 @@ public class AIService {
     private static final Logger logger = LoggerFactory.getLogger(AIService.class);
     
     private final RestTemplate restTemplate;
+    private final LectureRepository lectureRepository;
     
     @Value("${ai.service.url}")
     private String aiServiceUrl;
 
-    public AIService(RestTemplate restTemplate) {
+    public AIService(RestTemplate restTemplate, LectureRepository lectureRepository) {
         this.restTemplate = restTemplate;
+        this.lectureRepository = lectureRepository;
     }
 
     @Async
@@ -113,118 +114,7 @@ public class AIService {
         }
     }
 
-    // 학습 계획 추천 요청 - 비동기로 처리하고 콜백으로 결과 받기
-    @Async
-    public void requestStudyPlanRecommendation(String email, Long lectureId) {
-        try {
-            // AI 서비스에 요청 보내기
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("email", email);
-            requestBody.put("lecture_id", lectureId);
-            requestBody.put("callback_url", aiServiceUrl + "/api/ai/callback/study-plan");
-            
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
-            
-            // AI 서비스에 비동기 처리 요청
-            restTemplate.postForObject(aiServiceUrl + "/recommendation-async", request, Void.class);
-            
-            logger.info("강의 ID {}에 대한 학습 계획 추천 요청을 전송했습니다.", lectureId);
-            
-        } catch (Exception e) {
-            logger.error("학습 계획 추천 요청 중 오류 발생: {}", e.getMessage());
-        }
-    }
 
-    // 동기 방식의 학습 계획 추천 요청 (기존 메서드 유지)
-    public String getStudyRecommendation(String email, Long lectureId) {
-        try {
-            // AI 서비스에 요청 보내기
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("email", email);
-            requestBody.put("lecture_id", lectureId);
-            
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
-            
-            // AI 서비스에 요청 전송
-            ResponseEntity<Map> response = restTemplate.postForEntity(
-                    aiServiceUrl + "/recommendation", request, Map.class);
-            
-            // 응답에서 추천 내용 추출
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return (String) response.getBody().get("recommendation");
-            } else {
-                throw new RuntimeException("학습 추천 실패: 서버 응답이 유효하지 않습니다.");
-            }
-        } catch (Exception e) {
-            logger.error("학습 추천 요청 중 오류 발생: {}", e.getMessage());
-            throw new RuntimeException("학습 추천 실패", e);
-        }
-    }
 
-    /**
-     * AI 서버에 채팅 응답을 요청합니다. (말투 정보 포함)
-     */
-    public String requestChatResponse(Long lectureId, Long sessionId, String userMessage,
-                                      List<ChatMessage> previousMessages, ChatSession.ToneType tone) {
-        try {
-            // 이전 메시지 히스토리 구성
-            List<Map<String, String>> messageHistory = previousMessages.stream()
-                    .map(msg -> Map.of(
-                            "role", msg.getRole().toString().toLowerCase(),
-                            "content", msg.getContent()
-                    ))
-                    .collect(Collectors.toList());
-            
-            // AI 서비스에 요청 보내기
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("lecture_id", lectureId);
-            requestBody.put("session_id", sessionId);
-            requestBody.put("message", userMessage);
-            requestBody.put("history", messageHistory);
-            requestBody.put("tone", tone.name());  // 말투 정보 추가
-            
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
-            
-            // AI 서비스에 요청 전송
-            ResponseEntity<Map> response = restTemplate.postForEntity(
-                    aiServiceUrl + "/chat", request, Map.class);
-            
-            // 응답에서 AI 메시지 추출
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return (String) response.getBody().get("response");
-            } else {
-                logger.error("AI 응답 실패: 서버 응답이 유효하지 않습니다.");
-                return "죄송합니다. 현재 응답을 생성할 수 없습니다. 나중에 다시 시도해주세요.";
-            }
-        } catch (Exception e) {
-            logger.error("AI 채팅 요청 중 오류 발생: {}", e.getMessage());
-            return "죄송합니다. 서버 오류가 발생했습니다. 나중에 다시 시도해주세요.";
-        }
-    }
 
-    // 결과 직접 조회 메서드 추가 (콜백이 실패할 경우 대비)
-    public Map<String, Object> getLectureResult(String taskId) {
-        try {
-            ResponseEntity<Map> response = restTemplate.getForEntity(
-                    aiServiceUrl + "/result/" + taskId, Map.class);
-            
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return response.getBody();
-            } else {
-                throw new RuntimeException("결과 조회 실패: 서버 응답이 유효하지 않습니다.");
-            }
-        } catch (Exception e) {
-            logger.error("결과 조회 중 오류 발생: {}", e.getMessage());
-            throw new RuntimeException("결과 조회 실패", e);
-        }
-    }
 }

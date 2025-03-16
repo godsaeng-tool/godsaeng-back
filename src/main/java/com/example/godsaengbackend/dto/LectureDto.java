@@ -26,6 +26,8 @@ public class LectureDto {
         private Lecture.SourceType sourceType;
         
         private String videoUrl;
+        
+        private String studyPlan;
     }
     
     @Data
@@ -74,6 +76,8 @@ public class LectureDto {
         private Lecture.LectureStatus status;
         private Boolean embeddingSynced;
         private LocalDateTime createdAt;
+        private String studyPlan;
+        private String taskId;
         
         public static DetailResponse fromEntity(Lecture lecture) {
             return DetailResponse.builder()
@@ -88,6 +92,8 @@ public class LectureDto {
                     .status(lecture.getStatus())
                     .embeddingSynced(lecture.getEmbeddingSynced())
                     .createdAt(lecture.getCreatedAt())
+                    .studyPlan(lecture.getStudyPlan())
+                    .taskId(lecture.getTaskId())
                     .build();
         }
     }

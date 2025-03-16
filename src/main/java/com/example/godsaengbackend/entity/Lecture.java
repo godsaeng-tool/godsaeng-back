@@ -32,10 +32,13 @@ public class Lecture {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(columnDefinition = "TEXT")
+    private String studyPlan;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "source_type", nullable = false)
     private SourceType sourceType;
-
+    
     @Column(name = "video_url")
     private String videoUrl;
 
@@ -57,6 +60,9 @@ public class Lecture {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private LectureStatus status = LectureStatus.PROCESSING;
+
+    @Column(name = "task_id")
+    private String taskId;
 
     @CreationTimestamp
     @Column(name = "created_at")
