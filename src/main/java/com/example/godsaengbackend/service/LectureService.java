@@ -23,12 +23,14 @@ public class LectureService {
     private final UserService userService;
     private final AIService aiService;
     private final RestTemplate restTemplate;
+    private final ChatService chatService;
 
-    public LectureService(LectureRepository lectureRepository, UserService userService, AIService aiService, RestTemplate restTemplate) {
+    public LectureService(LectureRepository lectureRepository, UserService userService, AIService aiService, RestTemplate restTemplate, ChatService chatService) {
         this.lectureRepository = lectureRepository;
         this.userService = userService;
         this.aiService = aiService;
         this.restTemplate = restTemplate;
+        this.chatService = chatService;
     }
 
     @Transactional
@@ -119,7 +121,14 @@ public class LectureService {
         
         lectureRepository.save(lecture);
         
-
+        // 강의 처리 완료 시 환영 메시지 자동 생성
+        try {
+            chatService.createWelcomeMessage(lecture.getId());
+            logger.debug("환영 메시지 생성 완료: lectureId={}", lecture.getId());
+        } catch (Exception e) {
+            // 메시지 생성 실패해도 강의 처리는 완료된 것으로 간주
+            logger.error("환영 메시지 생성 실패: {}", e.getMessage(), e);
+        }
     }
 
 
