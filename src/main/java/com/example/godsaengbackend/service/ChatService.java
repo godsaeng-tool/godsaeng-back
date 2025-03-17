@@ -208,12 +208,25 @@ public class ChatService {
                     ObjectMapper objectMapper = new ObjectMapper();
                     JsonNode rootNode = objectMapper.readTree(response.getBody());
                     
-                    // data.answer 필드 추출 시도
-                    if (rootNode.has("data") && rootNode.get("data").has("answer")) {
-                        return rootNode.get("data").get("answer").asText();
-                    } else if (rootNode.has("answer")) {
-                        // 또는 직접 answer 필드가 있는 경우
-                        return rootNode.get("answer").asText();
+                    // 응답이 배열 형태인지 확인
+                    if (rootNode.isArray() && rootNode.size() > 0) {
+                        // 배열의 첫 번째 요소 가져오기
+                        JsonNode firstElement = rootNode.get(0);
+                        
+                        // data.answer 필드 추출 시도
+                        if (firstElement.has("data") && firstElement.get("data").has("answer")) {
+                            return firstElement.get("data").get("answer").asText();
+                        } else if (firstElement.has("answer")) {
+                            // 또는 직접 answer 필드가 있는 경우
+                            return firstElement.get("answer").asText();
+                        }
+                    } else {
+                        // 기존 로직 유지 (배열이 아닌 경우)
+                        if (rootNode.has("data") && rootNode.get("data").has("answer")) {
+                            return rootNode.get("data").get("answer").asText();
+                        } else if (rootNode.has("answer")) {
+                            return rootNode.get("answer").asText();
+                        }
                     }
                 } catch (Exception e) {
                     // JSON 파싱 실패 시 원본 응답 반환
