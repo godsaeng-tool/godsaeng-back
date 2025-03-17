@@ -131,5 +131,14 @@ public class LectureService {
         }
     }
 
+    @Transactional
+    public void updateLectureTaskId(Long lectureId, String taskId) {
+        Lecture lecture = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new RuntimeException("강의를 찾을 수 없습니다."));
+        
+        lecture.setTaskId(taskId);
+        lecture.setVideoUrl(taskId); // videoUrl에도 taskId 저장
+        lectureRepository.save(lecture);
+    }
 
 }

@@ -73,7 +73,7 @@ public class AIService {
     }
     
     // 파일 업로드를 위한 메서드 - 파일을 직접 Flask 서버로 전송
-    public String uploadFileToAIService(MultipartFile file) {
+    public String uploadFileToAIService(MultipartFile file, Long lectureId) {
         try {
             // 파일 데이터를 MultipartFile에서 추출
             String filename = file.getOriginalFilename();
@@ -91,6 +91,13 @@ public class AIService {
             };
             body.add("file", resource);
             
+            // lecture_id 추가 - 중요!
+            body.add("lecture_id", lectureId.toString());
+            
+            // 콜백 URL 추가
+            String callbackUrl = "http://localhost:8080/api/ai/callback/complete";
+            body.add("callback_url", callbackUrl);
+            
             // HTTP 헤더 설정
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
@@ -104,7 +111,13 @@ public class AIService {
             
             // 응답에서 파일 URL 또는 식별자 추출
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return (String) response.getBody().get("file_url");
+                if (response.getBody().containsKey("task_id")) {
+                    return (String) response.getBody().get("task_id");
+                } else if (response.getBody().containsKey("file_url")) {
+                    return (String) response.getBody().get("file_url");
+                } else {
+                    throw new RuntimeException("파일 업로드 실패: 응답에서 task_id 또는 file_url을 찾을 수 없습니다.");
+                }
             } else {
                 throw new RuntimeException("파일 업로드 실패: 서버 응답이 유효하지 않습니다.");
             }

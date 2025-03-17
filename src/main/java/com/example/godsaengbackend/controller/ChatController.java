@@ -33,15 +33,15 @@ public class ChatController {
             @RequestAttribute("email") String email,
             @PathVariable Long lectureId,
             @Valid @RequestBody ChatRequestDTO request) {
-        
-        logger.debug("질문 전송 요청: email={}, lectureId={}, question={}", 
+
+        logger.debug("질문 전송 요청: email={}, lectureId={}, question={}",
                 email, lectureId, request.getQuestion());
-        
+
         ChatResponseDTO response = chatService.sendQuestion(email, lectureId, request);
-        
-        logger.debug("질문 응답 완료: questionId={}, answerId={}", 
+
+        logger.debug("질문 응답 완료: questionId={}, answerId={}",
                 response.getQuestionId(), response.getAnswerId());
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -52,14 +52,14 @@ public class ChatController {
     public ResponseEntity<ChatHistoryDTO> getChatHistory(
             @RequestAttribute("email") String email,
             @PathVariable Long lectureId) {
-        
+
         logger.debug("채팅 기록 조회 요청: email={}, lectureId={}", email, lectureId);
-        
+
         ChatHistoryDTO history = chatService.getChatHistory(email, lectureId);
-        
-        logger.debug("채팅 기록 조회 완료: lectureId={}, messageCount={}", 
+
+        logger.debug("채팅 기록 조회 완료: lectureId={}, messageCount={}",
                 history.getLectureId(), history.getMessages().size());
-        
+
         return ResponseEntity.ok(history);
     }
 
@@ -69,10 +69,10 @@ public class ChatController {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception e) {
         logger.error("API 오류 발생: {}", e.getMessage(), e);
-        
+
         Map<String, String> error = new HashMap<>();
         error.put("error", e.getMessage());
-        
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 } 

@@ -58,19 +58,24 @@ public class LectureController {
             throw new IllegalArgumentException("파일이 비어있습니다.");
         }
         
-        // 파일을 AI 서비스로 직접 업로드하고 URL 또는 식별자 받기
-        String fileUrl = aiService.uploadFileToAIService(file);
-        
         // 강의 생성 요청 객체 생성
         LectureDto.CreateRequest request = LectureDto.CreateRequest.builder()
                 .title(title)
                 .description(description)
                 .sourceType(Lecture.SourceType.UPLOAD)
-                .videoUrl(fileUrl)  // AI 서비스에서 반환한 URL 또는 식별자
+                .videoUrl("pending")  // 임시값
                 .build();
         
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(lectureService.createLecture(email, request));
+        // 먼저 강의 객체 생성
+        LectureDto.Response lectureResponse = lectureService.createLecture(email, request);
+        
+        // 파일을 AI 서비스로 직접 업로드하고 task_id 받기 (lecture_id 포함)
+        String taskId = aiService.uploadFileToAIService(file, lectureResponse.getId());
+        
+        // 강의 객체의 videoUrl 업데이트 (taskId로)
+        lectureService.updateLectureTaskId(lectureResponse.getId(), taskId);
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(lectureResponse);
     }
 
     @GetMapping
