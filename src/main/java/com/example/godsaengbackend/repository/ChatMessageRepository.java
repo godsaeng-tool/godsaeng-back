@@ -3,6 +3,7 @@ package com.example.godsaengbackend.repository;
 import com.example.godsaengbackend.entity.ChatMessage;
 import com.example.godsaengbackend.entity.Lecture;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -24,4 +25,10 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     
     // 특정 질문에 대한 답변 조회
     ChatMessage findByParentId(Long parentId);
+
+    void deleteByLectureId(Long lectureId);
+
+    @Modifying
+    @Query("DELETE FROM ChatMessage c WHERE c.lecture.id = :lectureId")
+    int deleteAllByLectureId(@Param("lectureId") Long lectureId);
 } 

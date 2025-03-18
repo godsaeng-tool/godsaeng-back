@@ -199,7 +199,7 @@ public class ChatService {
             ResponseEntity<String> response = restTemplate.postForEntity(queryUrl, requestEntity, String.class);
             
             // 응답 로깅
-            logger.debug("AI 서버 응답: status={}, body={}", response.getStatusCode(), response.getBody());
+            logger.debug("AI 서버 응답: status={}", response.getStatusCode());
             
             // 응답이 JSON 형식인지 확인
             if (response.getBody() != null) {
@@ -264,5 +264,15 @@ public class ChatService {
             chatMessageRepository.save(welcomeMessage);
             logger.debug("강의 ID {}에 환영 메시지 생성 완료", lectureId);
         }
+    }
+
+    /**
+     * 강의에 속한 모든 채팅 메시지를 삭제합니다.
+     */
+    @Transactional
+    public void deleteAllChatsByLectureId(Long lectureId) {
+        // void 메서드이므로 반환값을 받지 않음
+        chatMessageRepository.deleteAllByLectureId(lectureId);
+        logger.info("강의 ID {}에 속한 채팅 메시지 삭제 완료", lectureId);
     }
 } 

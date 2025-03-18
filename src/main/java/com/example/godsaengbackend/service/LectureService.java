@@ -141,4 +141,19 @@ public class LectureService {
         lectureRepository.save(lecture);
     }
 
+    @Transactional
+    public void deleteLecture(String email, Long lectureId) {
+        User user = userService.findByEmail(email);
+        Lecture lecture = lectureRepository.findByIdAndUser(lectureId, user)
+                .orElseThrow(() -> new EntityNotFoundException("강의를 찾을 수 없거나 접근 권한이 없습니다."));
+        
+        // 1. 먼저 관련된 채팅 메시지 삭제
+        chatService.deleteAllChatsByLectureId(lectureId);
+        
+        // 2. 강의 삭제
+        lectureRepository.delete(lecture);
+        
+        logger.info("강의 삭제 완료: id={}, title={}", lecture.getId(), lecture.getTitle());
+    }
+
 }

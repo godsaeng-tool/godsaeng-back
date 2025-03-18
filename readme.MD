@@ -275,6 +275,24 @@
 
 - **Status Code**: 200 OK
 
+### 2.6. 강의 삭제
+
+- **URL**: `/api/lectures/{lectureId}`
+- **Method**: DELETE
+- **Headers**: `Authorization: Bearer {accessToken}`
+- **Response**:
+
+    ```json
+    {
+      "success": true,
+      "message": "강의가 성공적으로 삭제되었습니다."
+    }
+    
+    ```
+
+- **Status Code**: 200 OK
+- **참고**: 강의 삭제 시 관련된 모든 채팅 메시지도 함께 삭제됩니다.
+
 ## 3. 채팅 API
 
 ### 3.1. 질문 전송

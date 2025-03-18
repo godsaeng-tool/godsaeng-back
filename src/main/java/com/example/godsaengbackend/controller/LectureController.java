@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/lectures")
 public class LectureController {
@@ -90,5 +92,18 @@ public class LectureController {
             @RequestAttribute("email") String email,
             @PathVariable Long lectureId) {
         return ResponseEntity.ok(lectureService.getLecture(email, lectureId));
+    }
+
+    @DeleteMapping("/{lectureId}")
+    public ResponseEntity<?> deleteLecture(
+            @RequestAttribute("email") String email,
+            @PathVariable Long lectureId) {
+        
+        lectureService.deleteLecture(email, lectureId);
+        
+        return ResponseEntity.ok().body(Map.of(
+            "success", true,
+            "message", "강의가 성공적으로 삭제되었습니다."
+        ));
     }
 }
