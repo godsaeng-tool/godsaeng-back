@@ -39,29 +39,22 @@ public class UserController {
         
         UserDto.LoginResponse loginResponse = authService.login(request);
         
-        // Refresh Token을 HTTP-only 쿠키로 설정
+        // HTTP-only 쿠키 설정 부분 제거 또는 주석 처리
+        /*
         Cookie refreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
         refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true); // HTTPS에서만 전송
-        refreshTokenCookie.setPath("/api/users/refresh"); // 특정 경로에서만 사용 가능
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 7일
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/api/users/refresh");
+        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
         response.addCookie(refreshTokenCookie);
-        
-        // refreshToken은 @JsonProperty 설정으로 자동으로 응답에서 제외됨
+        */
         
         return ResponseEntity.ok(loginResponse);
     }
     
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(
-            @CookieValue(name = "refreshToken", required = false) String refreshTokenCookie,
-            @RequestBody(required = false) Map<String, String> requestBody) {
-        
-        // 쿠키에서 Refresh Token을 가져오거나, 요청 본문에서 가져옴
-        String refreshToken = refreshTokenCookie;
-        if (refreshToken == null && requestBody != null) {
-            refreshToken = requestBody.get("refreshToken");
-        }
+    public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> requestBody) {
+        String refreshToken = requestBody.get("refreshToken");
         
         if (refreshToken == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

@@ -50,8 +50,6 @@ public class UserDto {
     public static class LoginResponse {
         private String accessToken;
         
-        // refreshToken은 응답 시 직렬화하지 않음
-        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
         private String refreshToken;
         
         private Long id;
