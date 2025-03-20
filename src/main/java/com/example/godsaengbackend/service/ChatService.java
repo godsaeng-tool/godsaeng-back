@@ -8,6 +8,8 @@ import com.example.godsaengbackend.entity.Lecture;
 import com.example.godsaengbackend.entity.User;
 import com.example.godsaengbackend.repository.ChatMessageRepository;
 import com.example.godsaengbackend.repository.LectureRepository;
+import com.example.godsaengbackend.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,7 +37,7 @@ public class ChatService {
 
     private final ChatMessageRepository chatMessageRepository;
     private final LectureRepository lectureRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final RestTemplate restTemplate;
     
     @Value("${ai.service.url}")
@@ -44,11 +46,11 @@ public class ChatService {
     public ChatService(
             ChatMessageRepository chatMessageRepository,
             LectureRepository lectureRepository,
-            UserService userService,
+            UserRepository userRepository,
             RestTemplate restTemplate) {
         this.chatMessageRepository = chatMessageRepository;
         this.lectureRepository = lectureRepository;
-        this.userService = userService;
+        this.userRepository = userRepository;
         this.restTemplate = restTemplate;
     }
 
@@ -57,16 +59,11 @@ public class ChatService {
      */
     @Transactional
     public ChatResponseDTO sendQuestion(String email, Long lectureId, ChatRequestDTO request) {
-        User user = userService.findByEmail(email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
         
-        // 강의 정보 조회
-        Lecture lecture = lectureRepository.findById(lectureId)
-                .orElseThrow(() -> new RuntimeException("강의를 찾을 수 없습니다."));
-        
-        // 사용자가 해당 강의의 소유자인지 확인
-        if (!lecture.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("해당 강의에 대한 권한이 없습니다.");
-        }
+        Lecture lecture = lectureRepository.findByIdAndUser(lectureId, user)
+                .orElseThrow(() -> new EntityNotFoundException("강의를 찾을 수 없거나 접근 권한이 없습니다."));
         
         // 강의의 task_id 확인
         String taskId = lecture.getTaskId();
@@ -114,16 +111,11 @@ public class ChatService {
      */
     @Transactional(readOnly = true)
     public ChatHistoryDTO getChatHistory(String email, Long lectureId) {
-        User user = userService.findByEmail(email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
         
-        // 강의 정보 조회
-        Lecture lecture = lectureRepository.findById(lectureId)
-                .orElseThrow(() -> new RuntimeException("강의를 찾을 수 없습니다."));
-        
-        // 사용자가 해당 강의의 소유자인지 확인
-        if (!lecture.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("해당 강의에 대한 권한이 없습니다.");
-        }
+        Lecture lecture = lectureRepository.findByIdAndUser(lectureId, user)
+                .orElseThrow(() -> new EntityNotFoundException("강의를 찾을 수 없거나 접근 권한이 없습니다."));
         
         // 채팅 메시지 조회
         List<ChatMessage> messages = chatMessageRepository.findByLectureIdOrderByIdAsc(lectureId);
@@ -181,12 +173,17 @@ public class ChatService {
             requestBody.put("question", question);
             
             // 말투 설정 (선택적)
-            if (tone != null && !tone.isEmpty() && !tone.equalsIgnoreCase("normal")) {
-                requestBody.put("tone", tone.toLowerCase());
+            if (tone != null && !tone.isEmpty()) {
+                requestBody.put("tone", tone);
+                logger.info("말투 설정 적용: {}", tone);
+            } else {
+                requestBody.put("tone", "b");
+                logger.info("기본 말투 설정 적용: b");
             }
             
             // 요청 로깅
-            logger.debug("AI 서버 요청: URL={}, task_id={}, question={}", queryUrl, taskId, question);
+            logger.debug("AI 서버 요청: URL={}, task_id={}, question={}, tone={}", 
+                    queryUrl, taskId, question, tone);
             
             // HTTP 헤더 설정
             HttpHeaders headers = new HttpHeaders();
@@ -199,7 +196,7 @@ public class ChatService {
             ResponseEntity<String> response = restTemplate.postForEntity(queryUrl, requestEntity, String.class);
             
             // 응답 로깅
-            logger.debug("AI 서버 응답: status={}", response.getStatusCode());
+            logger.debug("AI 서버 응답: status={}, body={}", response.getStatusCode(), response.getBody());
             
             // 응답이 JSON 형식인지 확인
             if (response.getBody() != null) {
@@ -222,12 +219,22 @@ public class ChatService {
                         }
                     } else {
                         // 기존 로직 유지 (배열이 아닌 경우)
-                        if (rootNode.has("data") && rootNode.get("data").has("answer")) {
+                        if (rootNode.has("data") && rootNode.get("data").isObject() && 
+                            rootNode.get("data").has("answer")) {
                             return rootNode.get("data").get("answer").asText();
+                        } else if (rootNode.has("data") && rootNode.get("data").isTextual()) {
+                            return rootNode.get("data").asText();
                         } else if (rootNode.has("answer")) {
                             return rootNode.get("answer").asText();
+                        } else if (rootNode.has("response")) {
+                            return rootNode.get("response").asText();
                         }
                     }
+                    
+                    // 응답 구조를 파악할 수 없는 경우 전체 응답 반환
+                    logger.warn("알 수 없는 응답 구조: {}", response.getBody());
+                    return "AI 서버에서 응답을 받았지만 형식이 올바르지 않습니다. 관리자에게 문의하세요.";
+                    
                 } catch (Exception e) {
                     // JSON 파싱 실패 시 원본 응답 반환
                     logger.warn("JSON 파싱 실패, 원본 응답 반환: {}", e.getMessage());
