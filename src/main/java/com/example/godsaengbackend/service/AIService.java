@@ -39,12 +39,19 @@ public class AIService {
     }
 
     @Async
-    public void processLecture(Long lectureId, Lecture.SourceType sourceType, String videoUrl) {
+    public void processLecture(Long lectureId, Lecture.SourceType sourceType, String videoUrl, Integer remainingDays) {
         try {
+            // 강의 정보 조회
+           
             // AI 서비스에 요청 보내기
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("lecture_id", lectureId);
             requestBody.put("source_type", sourceType.toString());
+            
+            // 남은 일수 정보 추가
+            if (remainingDays != null) {
+                requestBody.put("remaining_days", remainingDays);
+            }
             
             // 콜백 URL 추가 - AI 서버가 처리 완료 후 이 URL로 결과를 보냄
             String callbackUrl = "http://localhost:8080/api/ai/callback/complete";
@@ -75,6 +82,10 @@ public class AIService {
     // 파일 업로드를 위한 메서드 - 파일을 직접 Flask 서버로 전송
     public String uploadFileToAIService(MultipartFile file, Long lectureId) {
         try {
+            // 강의 정보 조회
+            Lecture lecture = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new RuntimeException("강의를 찾을 수 없습니다: " + lectureId));
+            
             // 파일 데이터를 MultipartFile에서 추출
             String filename = file.getOriginalFilename();
             byte[] fileBytes = file.getBytes();
@@ -93,6 +104,11 @@ public class AIService {
             
             // lecture_id 추가 - 중요!
             body.add("lecture_id", lectureId.toString());
+            
+            // 남은 일수 정보 추가
+            if (lecture.getRemainingDays() != null) {
+                body.add("remaining_days", lecture.getRemainingDays().toString());
+            }
             
             // 콜백 URL 추가
             String callbackUrl = "http://localhost:8080/api/ai/callback/complete";

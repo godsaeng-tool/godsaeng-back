@@ -12,6 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -45,13 +47,19 @@ public class LectureService {
                 .videoUrl(request.getVideoUrl())
                 .status(Lecture.LectureStatus.PROCESSING)
                 .embeddingSynced(false)
+                .remainingDays(request.getRemainingDays())
                 .build();
 
         Lecture savedLecture = lectureRepository.save(lecture);
-
-        // 비동기로 AI 처리 시작
-        aiService.processLecture(savedLecture.getId(), savedLecture.getSourceType(), savedLecture.getVideoUrl());
-
+        
+        // 비동기로 AI 처리 시작 - remainingDays 직접 전달
+        aiService.processLecture(
+            savedLecture.getId(), 
+            savedLecture.getSourceType(), 
+            savedLecture.getVideoUrl(),
+            request.getRemainingDays()  // 직접 전달
+        );
+        
         return LectureDto.Response.fromEntity(savedLecture);
     }
 

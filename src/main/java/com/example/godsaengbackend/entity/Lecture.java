@@ -64,6 +64,9 @@ public class Lecture {
     @Column(name = "task_id")
     private String taskId;
 
+    @Column(name = "remaining_days")
+    private Integer remainingDays;
+
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;

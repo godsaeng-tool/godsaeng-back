@@ -54,7 +54,8 @@ public class LectureController {
             @RequestAttribute("email") String email,
             @RequestParam("file") MultipartFile file,
             @RequestParam("title") String title,
-            @RequestParam(value = "description", required = false) String description) {
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "remainingDays", required = false) Integer remainingDays) {
         
         if (file.isEmpty()) {
             throw new IllegalArgumentException("파일이 비어있습니다.");
@@ -65,7 +66,8 @@ public class LectureController {
                 .title(title)
                 .description(description)
                 .sourceType(Lecture.SourceType.UPLOAD)
-                .videoUrl("pending")  // 임시값
+                .videoUrl("pending")
+                .remainingDays(remainingDays)
                 .build();
         
         // 먼저 강의 객체 생성

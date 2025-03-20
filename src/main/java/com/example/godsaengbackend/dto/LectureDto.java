@@ -28,6 +28,8 @@ public class LectureDto {
         private String videoUrl;
         
         private String studyPlan;
+        
+        private Integer remainingDays;
     }
     
     @Data
@@ -44,6 +46,7 @@ public class LectureDto {
         private Boolean embeddingSynced;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
+        private Integer remainingDays;
         
         public static Response fromEntity(Lecture lecture) {
             return Response.builder()
@@ -56,6 +59,7 @@ public class LectureDto {
                     .embeddingSynced(lecture.getEmbeddingSynced())
                     .createdAt(lecture.getCreatedAt())
                     .updatedAt(lecture.getUpdatedAt())
+                    .remainingDays(lecture.getRemainingDays())
                     .build();
         }
     }
@@ -78,6 +82,7 @@ public class LectureDto {
         private LocalDateTime createdAt;
         private String studyPlan;
         private String taskId;
+        private Integer remainingDays;
         
         public static DetailResponse fromEntity(Lecture lecture) {
             return DetailResponse.builder()
@@ -94,6 +99,7 @@ public class LectureDto {
                     .createdAt(lecture.getCreatedAt())
                     .studyPlan(lecture.getStudyPlan())
                     .taskId(lecture.getTaskId())
+                    .remainingDays(lecture.getRemainingDays())
                     .build();
         }
     }
