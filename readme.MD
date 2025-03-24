@@ -128,9 +128,7 @@ java -jar build/libs/godsaeng-backend-0.0.1-SNAPSHOT.jar
    - 사용자가 강의 내용에 대한 질문을 입력
    - 백엔드 서버는 질문을 AI 서버로 전송하고 응답을 받아 사용자에게 제공
 
-## API 명세서
 
-자세한 API 명세는 [API 명세서](./API-SPEC.md)를 참조하세요.
 
 ### 주요 API 엔드포인트
 
