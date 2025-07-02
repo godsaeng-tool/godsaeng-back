@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # Spring Boot 백엔드 서비스
+  godsaeng-backend:
+    build: .
+    container_name: godsaeng-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-3600000}
+      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION:-604800000}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SPRING_PROFILES_ACTIVE=prod
+      # AI 서비스 URL (추후 AI 서비스 배포시 사용)
+      - AI_CONVERT_URL=${AI_CONVERT_URL:-http://localhost:5001}
+      - AI_TUTORING_URL=${AI_TUTORING_URL:-http://localhost:5002}
+      - AI_SUMMARY_URL=${AI_SUMMARY_URL:-http://localhost:5003}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s 

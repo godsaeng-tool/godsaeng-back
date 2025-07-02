@@ -38,3 +38,17 @@ out/
 ### VS Code ###
 .vscode/
 
+### 환경변수 및 보안 파일 ###
+*.pem
+*.key
+
+### Docker ###
+docker-compose.override.yml
+
+### 로그 파일 ###
+*.log
+logs/
+
+### 임시 파일 ###
+*.tmp
+*.temp
