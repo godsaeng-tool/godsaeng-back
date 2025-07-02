@@ -1,4 +1,4 @@
-# 멀티스테이지 빌드 - 안정적인 방법
+# 멀티스테이지 빌드
 FROM gradle:8.5-jdk17 AS build
 WORKDIR /app
 COPY build.gradle settings.gradle ./
