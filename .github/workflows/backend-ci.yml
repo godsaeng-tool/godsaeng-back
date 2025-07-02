@@ -72,10 +72,6 @@ jobs:
             AI_SUMMARY_URL=http://localhost:5003
             EOF
             
-            # Gradle 빌드 (JAR 파일 생성)
-            chmod +x ./gradlew
-            ./gradlew clean build -x test
-            
             # 기존 컨테이너 정리 및 재배포
             docker-compose down --remove-orphans || true
             docker-compose build --no-cache
