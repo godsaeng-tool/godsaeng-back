@@ -52,15 +52,11 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           port: 22
           script: |
-            # 프로젝트 디렉토리로 이동 또는 생성
-            cd /home/ubuntu/godsaeng-backend || {
-              git clone https://github.com/godsaeng-tool/godsaeng-back.git /home/ubuntu/godsaeng-backend
-              cd /home/ubuntu/godsaeng-backend
-            }
-            
-            # 최신 코드 가져오기
-            git fetch origin
-            git reset --hard origin/main
+            # 기존 디렉토리 정리 및 새로 클론
+            cd /home/ubuntu
+            rm -rf godsaeng-backend
+            git clone https://github.com/godsaeng-tool/godsaeng-back.git godsaeng-backend
+            cd godsaeng-backend
             
             # 환경변수 파일 생성/업데이트
             cat > .env << EOF
