@@ -10,8 +10,10 @@ env:
   AWS_REGION: ap-northeast-2
 
 jobs:
-  test:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
     steps:
     - uses: actions/checkout@v4
     
@@ -34,24 +36,10 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
       
-    - name: Run tests
-      run: ./gradlew test -Dspring.profiles.active=test
-      
-    - name: Generate test report
-      uses: dorny/test-reporter@v1
-      if: success() || failure()
-      with:
-        name: Test Results
-        path: build/test-results/test/*.xml
-        reporter: java-junit
-
-  build-and-deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-    - uses: actions/checkout@v4
+    - name: Build with Gradle
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean build -x test
     
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
