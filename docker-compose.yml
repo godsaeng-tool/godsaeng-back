@@ -22,6 +22,8 @@ services:
       - AI_CONVERT_URL=${AI_CONVERT_URL:-http://localhost:5001}
       - AI_TUTORING_URL=${AI_TUTORING_URL:-http://localhost:5002}
       - AI_SUMMARY_URL=${AI_SUMMARY_URL:-http://localhost:5003}
+      # 통합 AI 서비스 URL
+      - AI_SERVICE_URL=${AI_SERVICE_URL:-http://localhost:5000}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]

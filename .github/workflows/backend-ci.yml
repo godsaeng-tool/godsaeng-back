@@ -70,6 +70,7 @@ jobs:
             AI_CONVERT_URL=http://localhost:5001
             AI_TUTORING_URL=http://localhost:5002
             AI_SUMMARY_URL=http://localhost:5003
+            AI_SERVICE_URL=http://localhost:5000
             EOF
             
             # 기존 컨테이너 정리 및 재배포
