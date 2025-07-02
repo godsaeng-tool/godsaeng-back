@@ -45,3 +45,9 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// Plain JAR 생성 비활성화 (실행가능한 bootJar만 생성)
+jar {
+    enabled = false
+    archiveClassifier = ''
+}
